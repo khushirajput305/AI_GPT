@@ -48,17 +48,18 @@ userSchema.methods.matchPassword = async function (password) {
 //SIGN TOKEN
 userSchema.methods.getSignedToken = function (res) {
   const acccessToken = JWT.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_ACCESS_EXPIREIN,
+    expiresIn: process.env.JWT_ACCESS_EXPIRE || "1h",
   });
   const refreshToken = JWT.sign(
     { id: this._id },
     process.env.JWT_REFRESH_TOKEN,
-    { expiresIn: process.env.JWT_REFRESH_EXIPREIN }
+    { expiresIn: process.env.JWT_REFRESH_EXIPRE ||"7d"}
   );
   res.cookie("refreshToken", `${refreshToken}`, {
     maxAge: 86400 * 7000,
     httpOnly: true,
   });
+  return acccessToken;
 };
 
 const User = mongoose.model("User", userSchema);

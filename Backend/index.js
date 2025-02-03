@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 
 //routes path
 const authRoutes = require('./routes/authRoutes');
+const openaiRoutes= require ('./routes/openaiRoutes')
 const errorHandler = require("./middlewares/errorMiddleware");
 
 //dotenv
@@ -29,6 +30,7 @@ const PORT = process.env.PORT || 8080;
 
 //api routes
 app.use('/api/v1/auth',authRoutes)
+app.use("/api/v1/openai",openaiRoutes);
 
 
 app.listen(PORT, () => {
