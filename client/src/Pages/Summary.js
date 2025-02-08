@@ -30,7 +30,7 @@ const Summary = () => {
     try {
       const { data } = await axios.post("http://localhost:8080/api/v1/openai/summary", { text });
       console.log(data);
-      setSummary(data);
+      setSummary(data.summary || "No summary generated.");
     } catch (err) {
       console.log(error);
       if (err.response.data.error) {

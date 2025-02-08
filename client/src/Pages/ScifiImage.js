@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import axios from "axios";
 import {
   Box,
@@ -28,9 +27,12 @@ const ScifiImage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("http://localhost:8080/api/v1/openai/scifi-image", { text });
+      const { data } = await axios.post(
+        "http://localhost:8080/api/v1/openai/scifi-image",
+        { text }
+      );
       console.log(data);
-      setImage(data);
+      setImage(data.imageUrl || "No image generated.");
     } catch (err) {
       console.log(error);
       if (err.response.data.error) {
