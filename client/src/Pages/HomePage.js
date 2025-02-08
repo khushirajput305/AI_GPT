@@ -130,7 +130,7 @@ const Homepage = () => {
                 JS CONVERTER
               </Typography>
               <Typography variant="h6">
-                Trasnlate english to javascript code
+                Translate english to javascript code
               </Typography>
             </Stack>
           </Card>
