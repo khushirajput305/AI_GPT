@@ -25,12 +25,19 @@ const JsConverter = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("http://localhost:8080/api/v1/openai/js-converter", { text });
+      const { data } = await axios.post(
+        "http://localhost:8080/api/v1/openai/js-converter",
+        { text }
+      );
       console.log(data);
-      setCode(data.javascriptCode || "No code generated.");
-    } catch (err) {
+      setCode(
+        typeof data.javascriptCode === "string"
+          ? data.javascriptCode
+          : JSON.stringify(data.javascriptCode) || "No code generated."
+      );    } catch (err) {
       console.error(err);
       setError(err.response?.data?.error || err.message || "Something went wrong.");
+
       setTimeout(() => setError(""), 5000);
     }
   };
@@ -64,7 +71,13 @@ const JsConverter = () => {
           onChange={(e) => setText(e.target.value)}
         />
 
-        <Button type="submit" fullWidth variant="contained" size="large" sx={{ color: "white", mt: 2 }}>
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          size="large"
+          sx={{ color: "white", mt: 2 }}
+        >
           Convert
         </Button>
         <Typography mt={2}>
@@ -86,7 +99,11 @@ const JsConverter = () => {
         }}
       >
         <pre>
-          <Typography component="code">{code || "Your Code Will Appear Here"}</Typography>
+          <pre>
+            <Typography component="code">
+              {code || "Your Code Will Appear Here"}
+            </Typography>
+          </pre>
         </pre>
       </Card>
     </Box>

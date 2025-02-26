@@ -25,12 +25,17 @@ const Paragraph = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("http://localhost:8080/api/v1/openai/paragraph", { text });
+      const { data } = await axios.post(
+        "http://localhost:8080/api/v1/openai/paragraph",
+        { text }
+      );
       console.log(data);
-      setPara(data.paragraph || "No paragraph generated.");
+      setPara(data.paragraph.generated_text || "No paragraph generated.");
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.error || err.message || "Something went wrong.");
+      setError(
+        err.response?.data?.error || err.message || "Something went wrong."
+      );
       setTimeout(() => setError(""), 5000);
     }
   };
@@ -64,7 +69,13 @@ const Paragraph = () => {
           onChange={(e) => setText(e.target.value)}
         />
 
-        <Button type="submit" fullWidth variant="contained" size="large" sx={{ color: "white", mt: 2 }}>
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          size="large"
+          sx={{ color: "white", mt: 2 }}
+        >
           Generate
         </Button>
         <Typography mt={2}>
@@ -88,7 +99,9 @@ const Paragraph = () => {
         }}
       >
         <Typography variant="h5" sx={{ textAlign: "center" }}>
-          {para || "Your Paragraph Will Appear Here"}
+          {typeof para === "object"
+            ? JSON.stringify(para)
+            : para || "Your Paragraph Will Appear Here"}
         </Typography>
       </Card>
     </Box>

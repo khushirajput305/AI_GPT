@@ -1,114 +1,86 @@
-const dotenv = require("dotenv");
-dotenv.config();
-const OpenAI = require("openai");
+require("dotenv").config();
+const axios = require("axios");
 
-// Initialize OpenAI instance
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Ensure this is set in .env
-});
+const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
+const CHAT_MODEL = "tiiuae/falcon-7b-instruct"; 
 
-// Controller for chatbot responding like Yoda
-exports.chatbotController = async (req, res) => {
-  try {
-    const { text } = req.body;
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "You are Yoda from Star Wars. Respond like Yoda would." },
-        { role: "user", content: text },
-      ],
-      max_tokens: 300,
-      temperature: 0.7,
-    });
+async function queryHuggingFace(model, inputs) {
+    console.log("API Key:", HF_API_KEY); // Debugging
 
-    if (response.choices[0]?.message?.content) {
-      return res.status(200).json({ response: response.choices[0].message.content.trim() });
-    } else {
-      throw new Error("Failed to generate chatbot response.");
+    try {
+        const response = await axios.post(
+            `https://api-inference.huggingface.co/models/${model}`,
+            { inputs },
+            {
+                headers: {
+                    Authorization: `Bearer ${HF_API_KEY}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+        console.log("API Response:", response.data); // Debugging
+        return response.data;
+    } catch (error) {
+        console.error("Hugging Face API Error:", error.response ? error.response.data : error.message);
+        return null;
     }
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: err.message });
-  }
+}
+
+queryHuggingFace(CHAT_MODEL, "Hello, how are you?");
+
+
+// 📌 Chatbot Controller (Yoda-like responses)
+exports.chatbotController = async (req, res) => {
+    const { text } = req.body;
+    const prompt = `Hello friend:\n${text}`;
+
+    const response = await queryHuggingFace(CHAT_MODEL, prompt);
+    return res.status(200).json({ response });
 };
 
 // 📌 JavaScript Code Converter Controller
 exports.jsconverterController = async (req, res) => {
-  try {
     const { text } = req.body;
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "Convert user instructions into JavaScript code." },
-        { role: "user", content: `Convert these instructions into JavaScript:\n${text}` },
-      ],
-      max_tokens: 400,
-      temperature: 0.25,
-    });
+    const prompt = `Convert these instructions into JavaScript code:\n${text}`;
 
-    return res.status(200).json({ javascriptCode: response.choices[0]?.message?.content.trim() || "No code generated." });
-  } catch (err) {
-    console.error("Error in jsconverterController:", err);
-    return res.status(500).json({ message: err.message || "Internal Server Error" });
-  }
+    const response = await queryHuggingFace(CHAT_MODEL, prompt);
+    return res.status(200).json({ javascriptCode: response });
 };
 
 // 📌 Summary Controller
 exports.summaryController = async (req, res) => {
-  try {
     const { text } = req.body;
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "Summarize the given text concisely." },
-        { role: "user", content: `Summarize this:\n${text}` },
-      ],
-      max_tokens: 500,
-      temperature: 0.5,
-    });
+    const prompt = `Summarize the following text concisely:\n${text}`;
 
-    return res.status(200).json({ summary: response.choices[0]?.message?.content.trim() || "No summary generated." });
-  } catch (err) {
-    console.error("Error in summaryController:", err);
-    return res.status(500).json({ message: err.message || "Internal Server Error" });
-  }
+    const response = await queryHuggingFace(CHAT_MODEL, prompt);
+    return res.status(200).json({ summary: response });
 };
 
 // 📌 Paragraph Controller
 exports.paragraphController = async (req, res) => {
-  try {
     const { text } = req.body;
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "Write a detailed paragraph based on the given topic." },
-        { role: "user", content: `Write a detailed paragraph about:\n${text}` },
-      ],
-      max_tokens: 500,
-      temperature: 0.5,
-    });
+    const prompt = `Write a detailed paragraph about:\n${text}`;
 
-    return res.status(200).json({ paragraph: response.choices[0]?.message?.content.trim() || "No paragraph generated." });
-  } catch (err) {
-    console.error("Error in paragraphController:", err);
-    return res.status(500).json({ message: err.message || "Internal Server Error" });
-  }
+    const response = await queryHuggingFace(CHAT_MODEL, prompt);
+    return res.status(200).json({ paragraph: response });
 };
 
-// 📌 Sci-Fi Image Generator Controller
+// 📌 Sci-Fi Image Generator Controller (Using Hugging Face DALL-E Alternative)
 exports.scifiImageController = async (req, res) => {
-  try {
     const { text } = req.body;
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `Generate a sci-fi image of ${text}`,
-      n: 1,
-      size: "1024x1024",
-    });
 
-    return res.status(200).json({ imageUrl: response.data[0]?.url || "No image generated." });
-  } catch (err) {
-    console.error("Error in scifiImageController:", err);
-    return res.status(500).json({ message: err.message || "Internal Server Error" });
-  }
+    try {
+        const response = await axios.post(
+            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
+            { inputs: `Generate a sci-fi image of ${text}` },
+            { headers: { Authorization: `Bearer ${HF_API_KEY}` } }
+        );
+
+        if (response.data.error) throw new Error(response.data.error);
+
+        return res.status(200).json({ imageUrl: response.data[0]?.url || "No image generated." });
+    } catch (err) {
+        console.error("Error in scifiImageController:", err);
+        return res.status(500).json({ message: err.message || "Internal Server Error" });
+    }
 };

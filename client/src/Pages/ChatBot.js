@@ -27,7 +27,7 @@ const ChatBot = () => {
     try {
       const { data } = await axios.post("http://localhost:8080/api/v1/openai/chatbot", { text });
       console.log(data);
-      setResponse(data.response || "No response received.");
+      setResponse(data.response?.[0]?.generated_text || "No response received.");
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.error || err.message || "Something went wrong.");
@@ -86,8 +86,9 @@ const ChatBot = () => {
         }}
       >
         <Typography variant="h5" sx={{ textAlign: "center" }}>
-          {response || "Bot Response"}
-        </Typography>
+  {typeof response === "object" ? JSON.stringify(response) : response || "Bot Response"}
+</Typography>
+
       </Card>
     </Box>
   );
